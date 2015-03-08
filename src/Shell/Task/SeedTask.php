@@ -11,13 +11,27 @@ use Exception;
 class SeedTask extends Shell
 {
     /**
+     * Default configuration.
+     *
+     * @var array
+     */
+    private $_config = [
+        'connection' => 'test',
+        'seed' => 'config/schema.php',
+        'truncate' => true
+    ];
+
+    /**
      * Insert data from seed.php file into database.
      *
+     * @param array $options Set connection name and path to the seed.php file.
      * @return void
      */
-    public function seed()
+    public function seed($options = [])
     {
-        $data = $this->_readSeed($this->params['seed']);
+        $this->_config = array_merge($this->_config, $this->params, $options);
+
+        $data = $this->_readSeed($this->_config['seed']);
         $this->_insert($this->_connection(), $data);
     }
 
@@ -67,7 +81,7 @@ class SeedTask extends Shell
         try {
             $schema = $db->schemaCollection()->describe($table);
 
-            if ($this->params['truncate']) {
+            if ($this->_config['truncate']) {
                 $truncateSql = $schema->truncateSql($db);
                 foreach ($truncateSql as $statement) {
                     $db->execute($statement)->closeCursor();
@@ -122,6 +136,7 @@ class SeedTask extends Shell
      */
     protected function _beforeTableInsert($db, $table)
     {
+        // TODO: Move this into the driver
         if ($db->driver() instanceof Sqlserver) {
             $table = $db->quoteIdentifier($table);
             $db->query(sprintf('SET IDENTITY_INSERT %s ON', $table));
@@ -135,6 +150,7 @@ class SeedTask extends Shell
      */
     protected function _afterTableInsert($db, $table)
     {
+        // TODO: Move this into the driver
         if ($db->driver() instanceof Sqlserver) {
             $table = $db->quoteIdentifier($table);
             $db->query(sprintf('SET IDENTITY_INSERT %s OFF', $table));
@@ -149,7 +165,7 @@ class SeedTask extends Shell
      */
     protected function _connection()
     {
-        $db = ConnectionManager::get($this->params['connection'], false);
+        $db = ConnectionManager::get($this->_config['connection'], false);
         if (!method_exists($db, 'schemaCollection')) {
             throw new \RuntimeException(
                 'Cannot generate fixtures for connections that do not implement schemaCollection()'

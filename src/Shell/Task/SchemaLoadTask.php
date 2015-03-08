@@ -2,6 +2,9 @@
 namespace Schema\Shell\Task;
 
 use Cake\Console\Shell;
+use Cake\Database\Driver\Mysql;
+use Cake\Database\Driver\Sqlite;
+use Cake\Database\Schema\Table as Schema;
 use Cake\Datasource\ConnectionManager;
 use Cake\Filesystem\File;
 use Exception;
@@ -14,7 +17,7 @@ class SchemaLoadTask extends Shell
      *
      * @var array
      */
-    private $config = [
+    private $_config = [
         'connection' => 'default',
         'path' => 'config/schema.php',
         'no-interaction' => true
@@ -28,9 +31,9 @@ class SchemaLoadTask extends Shell
      */
     public function load($options = [])
     {
-        $this->config = array_merge($this->config, $this->params, $options);
+        $this->_config = array_merge($this->_config, $this->params, $options);
 
-        $path = $this->config['path'];
+        $path = $this->_config['path'];
         $data = $this->_readSchema($path);
 
         $this->_loadTables($data['tables']);
@@ -44,9 +47,9 @@ class SchemaLoadTask extends Shell
      */
     public function drop($options = [])
     {
-        $this->config = array_merge($this->config, $this->params, $options);
+        $this->_config = array_merge($this->_config, $this->params, $options);
 
-        $path = $this->config['path'];
+        $path = $this->_config['path'];
         $data = $this->_readSchema($path);
 
         $queries = $this->_generateDropQueries();
@@ -104,6 +107,7 @@ class SchemaLoadTask extends Shell
     /**
      * Returns queries to drop all tables in the database.
      *
+     * @param \Cake\Database\Connection $db Connection to run the SQL queries on.
      * @param  bool $ask Ask question before generating queries. If false reply, no query is generated.
      * @return array|false List of SQL statements dropping tables or false if user stopped the deletion.
      */
@@ -113,11 +117,10 @@ class SchemaLoadTask extends Shell
             $db = $this->_connection();
         }
 
-        $queries = [];
         $schemaCollection = $db->schemaCollection();
         $tables = $schemaCollection->listTables();
 
-        if (count($tables) > 0 && !$this->config['no-interaction']) {
+        if (count($tables) > 0 && !$this->_config['no-interaction']) {
             $this->_io->out();
             $this->_io->out(sprintf(
                 '<warning>Database is not empty. %d tables will be deleted.</warning>',
@@ -129,11 +132,48 @@ class SchemaLoadTask extends Shell
             }
         }
 
+        $dropForeignKeys = [];
+        $dropTables = [];
+
         foreach ($tables as $tableName) {
             $this->_io->out('.', 0);
             $table = $schemaCollection->describe($tableName);
+
+            $dropKeys = $this->_generateDropForeignKeys($db, $table);
+            $dropForeignKeys = array_merge($dropForeignKeys, $dropKeys);
+
             $dropSql = $table->dropSql($db);
-            $queries = array_merge($queries, $dropSql);
+            $dropTables = array_merge($dropTables, $dropSql);
+        }
+        return array_merge($dropForeignKeys, $dropTables);
+    }
+
+    /**
+     * Generates SQL statements dropping foreign keys for the table.
+     *
+     * @param \Cake\Database\Connection $db Connection to run the SQL queries on.
+     * @param  \Cake\Database\Schema\Table $table Drop foreign keys for this table.
+     * @return [type] [description]
+     */
+    protected function _generateDropForeignKeys($db, Schema $table)
+    {
+        $type = 'other';
+        if ($db->driver() instanceof Mysql) {
+            $type = 'mysql';
+        }
+
+        $queries = [];
+        foreach ($table->constraints() as $constraintName) {
+            $constraint = $table->constraint($constraintName);
+            if ($constraint['type'] === Schema::CONSTRAINT_FOREIGN) {
+                // TODO: Move this into the driver
+                if ($type === 'mysql') {
+                    $template = 'ALTER TABLE %s DROP FOREIGN KEY %s';
+                } else {
+                    $template = 'ALTER TABLE %s DROP CONSTRAINT %s';
+                }
+                $queries[] = sprintf($template, $table->name(), $constraintName);
+            }
         }
         return $queries;
     }
@@ -174,7 +214,7 @@ class SchemaLoadTask extends Shell
      */
     protected function _connection()
     {
-        $db = ConnectionManager::get($this->config['connection'], false);
+        $db = ConnectionManager::get($this->_config['connection'], false);
         if (!method_exists($db, 'schemaCollection')) {
             throw new \RuntimeException(
                 'Cannot generate fixtures for connections that do not implement schemaCollection()'

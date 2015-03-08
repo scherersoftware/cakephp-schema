@@ -49,6 +49,7 @@ class Table extends SchemaTable
     {
         $constraints = [];
         foreach ($this->_foreignKeysSql as $statement) {
+            // TODO: Move this to the driver. SQLite is not supported.
             $constraints[] = sprintf(
                 'ALTER TABLE %s ADD %s',
                 $connection->quoteIdentifier($this->name()),

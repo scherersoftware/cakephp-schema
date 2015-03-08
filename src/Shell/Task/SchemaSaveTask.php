@@ -14,7 +14,7 @@ class SchemaSaveTask extends SimpleBakeTask
      *
      * @var array
      */
-    private $config = [
+    private $_config = [
         'connection' => 'default',
         'path' => 'config/schema.php',
         'no-interaction' => true
@@ -33,7 +33,7 @@ class SchemaSaveTask extends SimpleBakeTask
      */
     public function fileName($name)
     {
-        return $this->config['path'];
+        return $this->_config['path'];
     }
 
     /**
@@ -78,8 +78,8 @@ class SchemaSaveTask extends SimpleBakeTask
      */
     public function save($options = [])
     {
-        $this->config = array_merge($this->config, $this->params, $options);
-        if ($this->config['no-interaction']) {
+        $this->_config = array_merge($this->_config, $this->params, $options);
+        if ($this->_config['no-interaction']) {
             $this->interactive = false;
         }
         parent::bake('schema');
@@ -94,10 +94,10 @@ class SchemaSaveTask extends SimpleBakeTask
     {
         $this->_io->out(sprintf(
             'Reading the schema from the `%s` database ',
-            $this->config['connection']
+            $this->_config['connection']
         ), 0);
 
-        $connection = ConnectionManager::get($this->config['connection'], false);
+        $connection = ConnectionManager::get($this->_config['connection'], false);
         if (!method_exists($connection, 'schemaCollection')) {
             throw new \RuntimeException(
                 'Cannot generate fixtures for connections that do not implement schemaCollection()'
