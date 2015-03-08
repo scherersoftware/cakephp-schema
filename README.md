@@ -96,7 +96,8 @@ cake schema seed
 
 ## TODO
  
-- [ ] Auto-creation of the schema.lock file after `cake migrations migrate`
+- [x] Auto-creation of the schema.php file after `cake migrations migrate`
+- [x] Data seeding
 - [ ] Tests
-- [ ] Data loading from the `yaml`
 - [ ] More options and configuration
+- [ ] Refactoring and cleaning the code
