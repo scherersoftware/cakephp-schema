@@ -15,7 +15,7 @@ class SchemaSaveTask extends Shell
      */
     private $config = [
         'connection' => 'default',
-        'path' => 'config/schema.lock',
+        'path' => 'config/schema.php',
         'no-interaction' => true
     ];
 

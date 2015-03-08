@@ -1,6 +1,6 @@
 # Schema plugin for CakePHP 3.0
 
-Save the schema into one file and then restore the database from the schema file.
+Save the schema into one file and then restore the database from the schema file. The schema is automatically saved when executing `cake migrations migrate`.
 
 ## Installation
 
@@ -10,6 +10,12 @@ The recommended way to install composer packages is:
 
 ```
 composer require-dev laykou/schema
+```
+
+Update your `config/bootstrap.php``:
+
+```PHP
+Plugin::load('Schema', ['bootstrap' => true]);
 ```
 
 ## Usage
