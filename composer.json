@@ -1,7 +1,20 @@
 {
-    "name": "your-name-here/Schema",
-    "description": "Schema plugin for CakePHP",
+    "name": "laykou/schema",
+    "description": "Schema saving and loading from file for CakePHP 3.0",
     "type": "cakephp-plugin",
+    "keywords": ["cakephp", "orm", "database", "schema", "migrations"],
+    "homepage": "https://github.com/laykou/schema",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ladislav Gallay",
+            "role": "Author"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/laykou/schema/issues",
+        "source": "https://github.com/laykou/schema"
+    },
     "require": {
         "php": ">=5.4",
         "cakephp/cakephp": "3.0.x-dev"
