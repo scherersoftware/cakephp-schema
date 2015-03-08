@@ -153,7 +153,7 @@ class SchemaLoadTask extends Shell
      *
      * @param \Cake\Database\Connection $db Connection to run the SQL queries on.
      * @param  \Cake\Database\Schema\Table $table Drop foreign keys for this table.
-     * @return [type] [description]
+     * @return array List of SQL statements dropping foreign keys.
      */
     protected function _generateDropForeignKeys($db, Schema $table)
     {
