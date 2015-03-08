@@ -1,12 +1,13 @@
 <?php
 namespace Schema\Shell\Task;
 
+use Bake\Shell\Task\SimpleBakeTask;
 use Cake\Console\Shell;
 use Cake\Database\Schema\Table;
 use Cake\Datasource\ConnectionManager;
 use Cake\Filesystem\File;
 
-class SchemaSaveTask extends Shell
+class SchemaSaveTask extends SimpleBakeTask
 {
     /**
      * Default configuration.
@@ -15,9 +16,59 @@ class SchemaSaveTask extends Shell
      */
     private $config = [
         'connection' => 'default',
-        'path' => 'config/schema.php',
+        'path' => DS . 'config' . DS . 'schema.php',
         'no-interaction' => true
     ];
+
+    /**
+     * {@inheritDoc}
+     */
+    public function name()
+    {
+        return 'schema';
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function fileName($name)
+    {
+        return $this->config['path'];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function template()
+    {
+        return 'Schema.config/schema';
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getPath()
+    {
+        return ROOT;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function templateData()
+    {
+        $tables = '';
+
+        $data = $this->_describeTables();
+        foreach ($data as $name => $table) {
+            $schema = $this->_generateSchema($table);
+            $tables .= "        '$name' => $schema,\n";
+        }
+
+        return [
+            'tables' => $tables
+        ];
+    }
 
     /**
      * Save the schema into lock file.
@@ -28,10 +79,25 @@ class SchemaSaveTask extends Shell
     public function save($options = [])
     {
         $this->config = array_merge($this->config, $this->params, $options);
+        if ($this->config['no-interaction']) {
+            $this->interactive = false;
+        }
+        parent::bake('schema');
+    }
 
-        $this->_io->out('Reading the schema from the database ', 0);
+    /**
+     * Returns list of all tables and their Schema objects.
+     *
+     * @return array List of tables schema indexed by table name.
+     */
+    protected function _describeTables()
+    {
+        $this->_io->out(sprintf(
+            'Reading the schema from the `%s` database ',
+            $this->config['connection']
+        ), 0);
 
-        $connection = ConnectionManager::get($this->config['connection']);
+        $connection = ConnectionManager::get($this->config['connection'], false);
         if (!method_exists($connection, 'schemaCollection')) {
             throw new \RuntimeException(
                 'Cannot generate fixtures for connections that do not implement schemaCollection()'
@@ -47,72 +113,7 @@ class SchemaSaveTask extends Shell
         }
 
         $this->_io->out(); // New line
-
-        $this->_generateSchemaFile($data);
-    }
-
-    /**
-     * Generates the schema file and writes it to the disk.
-     *
-     * @param  array $data List of tables and their schemas.
-     * @return void
-     */
-    protected function _generateSchemaFile($data)
-    {
-        $this->_io->out('Generateing schema file ', 0);
-
-        $content = "<?php\n";
-        $content .= "/**\n";
-        $content .= " * This file is auto-generated from the current state of the database. Instead\n";
-        $content .= " * of editing this file, please use the migrations to incrementally modify your\n";
-        $content .= " * database, and then regenerate this schema definition.\n";
-        $content .= " *\n";
-        $content .= " * Note that this schema definition is the authoritative source for your\n";
-        $content .= " * database schema. If you need to create the application database on another\n";
-        $content .= " * system, you should be using `cake schema load`, not running all the migrations\n";
-        $content .= " * from scratch. The latter is a flawed and unsustainable approach (the more migrations\n";
-        $content .= " * you'll amass, the slower it'll run and the greater likelihood for issues).\n";
-        $content .= " *\n";
-        $content .= " * It's strongly recommended that you check this file into your version control system.\n";
-        $content .= " */\n";
-        $content .= "\n";
-        $content .= "return [\n";
-        $content .= "    'tables' => [\n";
-
-        foreach ($data as $name => $table) {
-            $this->_io->out('.', 0);
-            $schema = $this->_generateSchema($table);
-            $content .= "        '$name' => $schema,\n";
-        }
-
-        $this->_io->out(); // New line
-
-        $content .= "    ],\n";
-        $content .= "];\n";
-
-        $path = $this->config['path'];
-        $this->_createFile($path, $content);
-    }
-
-    /**
-     * Save the content to the file.
-     *
-     * @param  string $path Path to the file.
-     * @param  string $contents Content of the file.
-     * @return bool True if the file was successfully saved.
-     */
-    protected function _createFile($path, $contents)
-    {
-        $File = new File($path, true);
-        if ($File->exists() && $File->writable()) {
-            $data = $File->prepare($contents);
-            $File->write($data);
-            $this->_io->out(sprintf('<success>Wrote</success> `%s`', $path));
-            return true;
-        }
-
-        $this->_io->err(sprintf('<error>Could not write to `%s`</error>.', $path), 2);
-        return false;
+        return $data;
     }
 
     /**
@@ -143,13 +144,13 @@ class SchemaSaveTask extends Shell
 
         $content = implode("\n", $cols) . "\n";
         if (!empty($indexes)) {
-            $content .= "            '_indexes' => [\n" . implode("\n", $indexes) . "\n        ],\n";
+            $content .= "            '_indexes' => [\n" . implode("\n", $indexes) . "\n            ],\n";
         }
         if (!empty($constraints)) {
-            $content .= "            '_constraints' => [\n" . implode("\n", $constraints) . "\n        ],\n";
+            $content .= "            '_constraints' => [\n" . implode("\n", $constraints) . "\n            ],\n";
         }
         if (!empty($options)) {
-            $content .= "            '_options' => [\n" . implode(', ', $options) . "\n        ],\n";
+            $content .= "            '_options' => [\n" . implode(', ', $options) . "\n            ],\n";
         }
         return "[\n$content        ]";
     }

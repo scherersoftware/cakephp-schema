@@ -20,7 +20,8 @@
         "cakephp/cakephp": "3.0.x-dev"
     },
     "require-dev": {
-        "phpunit/phpunit": "*"
+        "phpunit/phpunit": "*",
+        "cakephp/bake": "dev-master"
     },
     "autoload": {
         "psr-4": {
