@@ -16,7 +16,7 @@ class SchemaSaveTask extends SimpleBakeTask
      */
     private $config = [
         'connection' => 'default',
-        'path' => DS . 'config' . DS . 'schema.php',
+        'path' => 'config/schema.php',
         'no-interaction' => true
     ];
 
@@ -49,7 +49,7 @@ class SchemaSaveTask extends SimpleBakeTask
      */
     public function getPath()
     {
-        return ROOT;
+        return ROOT . DS;
     }
 
     /**

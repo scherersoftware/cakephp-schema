@@ -16,7 +16,7 @@ class SchemaLoadTask extends Shell
      */
     private $config = [
         'connection' => 'default',
-        'path' => DS . 'config' . DS . 'schema.php',
+        'path' => 'config/schema.php',
         'no-interaction' => true
     ];
 
@@ -118,6 +118,7 @@ class SchemaLoadTask extends Shell
         $tables = $schemaCollection->listTables();
 
         if (count($tables) > 0 && !$this->config['no-interaction']) {
+            $this->_io->out();
             $this->_io->out(sprintf(
                 '<warning>Database is not empty. %d tables will be deleted.</warning>',
                 count($tables)

@@ -67,7 +67,7 @@ class SchemaShell extends Shell
         ])->addOption('path', [
             'help' => 'Path to the schema.lock file.',
             'short' => 'p',
-            'default' =>  DS . 'config' . DS . 'schema.php'
+            'default' =>  'config/schema.php'
         ])->addOption('no-interaction', [
             'help' => 'Disable any user input. Use the default answers for questions.',
             'short' => 'n',
