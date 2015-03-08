@@ -32,7 +32,50 @@ class SeedTask extends Shell
         $this->_config = array_merge($this->_config, $this->params, $options);
 
         $data = $this->_readSeed($this->_config['seed']);
-        $this->_insert($this->_connection(), $data);
+        $db = $this->_connection();
+
+        $this->_truncate($db, $data);
+        $this->_insert($db, $data);
+    }
+
+    /**
+     * Truncate the tables if requested. Because of postgres it must run in separate transaction.
+     *
+     * @param \Cake\Database\Connection $db Connection to run the SQL queries on.
+     * @param  array $data List tables and rows.
+     * @return void
+     */
+    protected function _truncate($db, $data = null)
+    {        
+        if ($this->_config['truncate']) {
+            $this->_io->out('Truncating ', 0);
+
+            $operation = function ($db) use ($data) {
+                foreach ($data as $table => $rows) {
+                    $this->_io->out('.', 0);
+                    $this->_truncateTable($db, $table);
+                }
+            };
+
+            $this->_runOperation($db, $operation);
+            $this->_io->out(); // New line
+        }
+    }
+
+    /**
+     * Truncates table. Deletes all rows in the table.
+     *
+     * @param  \Cake\Datasource\Connection $db Connection where table is stored.
+     * @param  string $table Table name.
+     * @return void
+     */
+    protected function _truncateTable($db, $table)
+    {
+        $schema = $db->schemaCollection()->describe($table);
+        $truncateSql = $schema->truncateSql($db);
+        foreach ($truncateSql as $statement) {
+            $db->execute($statement)->closeCursor();
+        }
     }
 
     /**
@@ -45,26 +88,20 @@ class SeedTask extends Shell
     protected function _insert($db, $data = null)
     {
         $this->_io->out('Seeding ', 0);
-        $logQueries = $db->logQueries();
-        if ($logQueries) {
-            $db->logQueries(false);
-        }
 
-        $db->transactional(function ($db) use ($data) {
+        $operation = function ($db) use ($data) {
             $db->disableForeignKeys();
             foreach ($data as $table => $rows) {
                 $this->_io->out('.', 0);
 
+                $this->_beforeTableInsert($db, $table);
                 $this->_insertTable($db, $table, $rows);
                 $this->_afterTableInsert($db, $table);
             }
             $db->enableForeignKeys();
-        });
+        };
 
-        if ($logQueries) {
-            $db->logQueries(true);
-        }
-
+        $this->_runOperation($db, $operation);
         $this->_io->out(); // New line
     }
 
@@ -80,25 +117,40 @@ class SeedTask extends Shell
     {
         try {
             $schema = $db->schemaCollection()->describe($table);
-
-            if ($this->_config['truncate']) {
-                $truncateSql = $schema->truncateSql($db);
-                foreach ($truncateSql as $statement) {
-                    $db->execute($statement)->closeCursor();
-                }
-            }
-
             list($fields, $values, $types) = $this->_getRecords($schema, $rows);
             $query = $db->newQuery()
-                ->insert($fields, $types)
-                ->into($table);
+            ->insert($fields, $types)
+            ->into($table);
+
             foreach ($values as $row) {
                 $query->values($row);
             }
+
             $query->execute()->closeCursor();
         } catch(Exception $e) {
             $this->_io->err($e->getMessage());
             exit(1);
+        }
+    }
+
+    /**
+     * Runs operation in the SQL transaction with disabled logging.
+     *
+     * @param  \Cake\Datasource\Connection $db Connection to run the transaction on.
+     * @param  callable $operation Operation to run.
+     * @return void
+     */
+    protected function _runOperation($db, $operation)
+    {
+        $logQueries = $db->logQueries();
+        if ($logQueries) {
+            $db->logQueries(false);
+        }
+
+        $db->transactional($operation);
+
+        if ($logQueries) {
+            $db->logQueries(true);
         }
     }
 
