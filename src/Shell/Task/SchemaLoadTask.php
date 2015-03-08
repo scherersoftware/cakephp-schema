@@ -23,7 +23,7 @@ class SchemaLoadTask extends Shell
     /**
      * Save the schema into lock file.
      *
-     * @param array $options Set connection name and path to save the schema.lock file.
+     * @param array $options Set connection name and path to save the schema.php file.
      * @return void
      */
     public function load($options = [])
@@ -39,7 +39,7 @@ class SchemaLoadTask extends Shell
     /**
      * Drop all tables in the database.
      *
-     * @param array $options Set connection name and path to save the schema.lock file.
+     * @param array $options Set connection name and path to save the schema.php file.
      * @return void
      */
     public function drop($options = [])
@@ -81,7 +81,7 @@ class SchemaLoadTask extends Shell
 
         $tableSchemes = [];
 
-        // Insert tables from the schema.lock file
+        // Insert tables from the schema.php file
         foreach ($tables as $name => $table) {
             $schema = $this->_schemaFromFields($name, $table);
             $tableSchemes[] = $schema;
@@ -174,7 +174,7 @@ class SchemaLoadTask extends Shell
      */
     protected function _connection()
     {
-        $db = ConnectionManager::get($this->config['connection']);
+        $db = ConnectionManager::get($this->config['connection'], false);
         if (!method_exists($db, 'schemaCollection')) {
             throw new \RuntimeException(
                 'Cannot generate fixtures for connections that do not implement schemaCollection()'
@@ -186,7 +186,7 @@ class SchemaLoadTask extends Shell
     /**
      * Returns the schema array.
      *
-     * @param  string $path Path to the schema.lock file.
+     * @param  string $path Path to the schema.php file.
      * @return array Schema array.
      */
     protected function _readSchema($path)
@@ -207,7 +207,7 @@ class SchemaLoadTask extends Shell
      * Build the fixtures table schema from the fields property.
      *
      * @param  string $tableNames Name of the table.
-     * @param  array $fields Fields saved into the schema.lock file.
+     * @param  array $fields Fields saved into the schema.php file.
      * @return \Cake\Database\Schema\Table Table schema
      */
     protected function _schemaFromFields($tableName, $fields)

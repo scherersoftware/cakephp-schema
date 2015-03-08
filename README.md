@@ -20,7 +20,7 @@ Plugin::load('Schema', ['bootstrap' => true]);
 
 ## Usage
 
-The plugin saves the schema of the `default` connection to the `config/schema.lock` file. The structure is similiar to the fixtures fields.
+The plugin saves the schema of the `default` connection to the `config/schema.php` file. The structure is similiar to the fixtures fields.
 
 ```
 cake schema save
@@ -45,6 +45,33 @@ To disable the question (and answer with yes) run
 cake schema load --no-interaction
 ```
 
+### Seed
+
+The Schema plugin allows you to seed data from the `config/seed.php` file. The `seed.php` file should return array of tables and rows:
+
+```PHP
+<?php
+// You can work with custom libraries here or use the Cake's ORM
+return [
+    'articles' => [
+        [
+            'id' => 1,
+            'category_id' => 1,
+            'label' => 'CakePHP'
+        ], [
+            'id' => 2,
+            'label' => 'Schema plugin'
+        ]
+    ],
+    'categories' => [
+        [
+            'id' => 2,
+            'label' => 'Frameworks'
+        ]
+    ]
+];
+```
+
 ## Other examples
 ```bash
 cake schema save --connection test
@@ -54,6 +81,17 @@ cake schema load --connection test --path config/schema/schema.lock --no-interac
 # To only drop all tables in database
 cake schema drop
 cake schema drop --connection test
+
+# Truncate tables before inserting. Otherwise duplicate ID exception is thrown.
+cake schema seed --truncate
+cake schema seed --seed custom/path/to/seed.php
+cake schema seed --connection test --truncate
+```
+
+To seed the data into database run following command:
+
+```
+cake schema seed
 ```
 
 ## TODO
