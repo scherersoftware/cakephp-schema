@@ -17,7 +17,7 @@ class SeedTask extends Shell
      */
     private $_config = [
         'connection' => 'test',
-        'seed' => 'config/schema.php',
+        'seed' => 'config/seed.php',
         'truncate' => true
     ];
 
@@ -95,8 +95,7 @@ class SeedTask extends Shell
             foreach ($values as $row) {
                 $query->values($row);
             }
-            $statement = $query->execute();
-            $statement->closeCursor();
+            $query->execute()->closeCursor();
         } catch(Exception $e) {
             $this->_io->err($e->getMessage());
             exit(1);
@@ -139,7 +138,7 @@ class SeedTask extends Shell
         // TODO: Move this into the driver
         if ($db->driver() instanceof Sqlserver) {
             $table = $db->quoteIdentifier($table);
-            $db->query(sprintf('SET IDENTITY_INSERT %s ON', $table));
+            $db->query(sprintf('SET IDENTITY_INSERT %s ON', $table))->closeCursor();
         }
     }
 
@@ -153,7 +152,7 @@ class SeedTask extends Shell
         // TODO: Move this into the driver
         if ($db->driver() instanceof Sqlserver) {
             $table = $db->quoteIdentifier($table);
-            $db->query(sprintf('SET IDENTITY_INSERT %s OFF', $table));
+            $db->query(sprintf('SET IDENTITY_INSERT %s OFF', $table))->closeCursor();
         }
     }
 
