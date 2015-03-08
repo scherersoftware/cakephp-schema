@@ -51,7 +51,8 @@ cake schema drop --connection test
 ```
 
 ## TODO
-[ ] Auto-creation of the schema.lock file after `cake migrations migrate`
-[ ] Tests
-[ ] Data loading from the `yaml`
-[ ] More options and configuration
+ 
+- [ ] Auto-creation of the schema.lock file after `cake migrations migrate`
+- [ ] Tests
+- [ ] Data loading from the `yaml`
+- [ ] More options and configuration
