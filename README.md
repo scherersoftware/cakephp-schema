@@ -2,6 +2,13 @@
 
 Save the schema into one file and then restore the database from the schema file. The schema is automatically saved when executing `cake migrations migrate`.
 
+## Supported datasources
+
+- Postgres
+- MySQL
+- SQL Server
+- ~SQL Lite~ not yet
+
 ## Installation
 
 You can install this plugin into your CakePHP application using [composer](http://getcomposer.org).
@@ -101,3 +108,6 @@ cake schema seed
 - [ ] Tests
 - [ ] More options and configuration
 - [ ] Refactoring and cleaning the code
+
+## Known issues
+ - SQL Lite is not fully supported
