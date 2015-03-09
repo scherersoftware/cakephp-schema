@@ -7,7 +7,7 @@ Save the schema into one file and then restore the database from the schema file
 - Postgres
 - MySQL
 - SQL Server
-- ~SQL Lite~ not yet
+- ~~SQLite~~ not yet
 
 ## Installation
 
@@ -110,4 +110,4 @@ cake schema seed
 - [ ] Refactoring and cleaning the code
 
 ## Known issues
- - SQL Lite is not fully supported
+ - SQLite is not fully supported
