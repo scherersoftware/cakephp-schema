@@ -1,19 +1,23 @@
 {
-    "name": "laykou/schema",
+    "name": "scherersoftware/cake-schema",
     "description": "Schema saving and loading from file for CakePHP 3.0",
     "type": "cakephp-plugin",
     "keywords": ["cakephp", "orm", "database", "schema", "migrations"],
-    "homepage": "https://github.com/laykou/schema",
+    "homepage": "https://github.com/scherersoftware/cakephp-schema",
     "license": "MIT",
     "authors": [
         {
             "name": "Ladislav Gallay",
             "role": "Author"
+        },
+        {
+            "name": "Robert Scherer",
+            "role": "Author"
         }
     ],
     "support": {
-        "issues": "https://github.com/laykou/schema/issues",
-        "source": "https://github.com/laykou/schema"
+        "issues": "https://github.com/scherersoftware/cakephp-schema/issues",
+        "source": "https://github.com/scherersoftware/cakephp-schema"
     },
     "require": {
         "php": ">=5.4",
