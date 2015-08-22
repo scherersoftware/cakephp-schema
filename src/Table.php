@@ -60,7 +60,7 @@ class Table extends SchemaTable
     }
 
     /**
-     * Refresh the protected foreign keys variable. 
+     * Refresh the protected foreign keys variable.
      * All foreign keys are removed from the original constraints.
      *
      * @return void

@@ -14,33 +14,39 @@ use Exception;
 
 class SeedImportTask extends Shell
 {
-    public $connection = 'default';
-
-    public $tasks = ['SeedGenerator'];
-
-    /**
-     * main() method.
-     *
-     * @return bool|int Success or error code.
-     */
-    public function import()
-    {
-        /*if (ENVIRONMENT !== \App\Lib\Environments::DEVELOPMENT) {
-            return $this->error('You can only import seed data on development systems.');
-        }*/
-        $this->seed();
-    }
+    public $tasks = ['Schema.SeedGenerate'];
 
     /**
      * Default configuration.
      *
      * @var array
      */
-    private $_config = [
+    protected $_config = [
         'connection' => 'default',
         'seed' => 'config/seed.php',
-        'truncate' => true
+        'truncate' => false,
+        'no-interaction' => false
     ];
+
+    /**
+     * main() method.
+     *
+     * @return bool|int Success or error code.
+     */
+    public function import(array $options = [])
+    {
+        $this->_config = array_merge($this->_config, $this->params, $options);
+
+        if (!$this->_config['no-interaction'] && $this->_config['truncate']) {
+            $this->_io->out();
+            $this->_io->out('<warning>All database tables will be truncated before seeding.</warning>');
+            $key = $this->_io->askChoice('Do you want to continue?', ['y', 'n'], 'y');
+            if ($key === 'n') {
+                return false;
+            }
+        }
+        $this->seed();
+    }
 
     /**
      * Insert data from seed.php file into database.
@@ -140,7 +146,7 @@ class SeedImportTask extends Shell
     protected function _insertTable($db, $table, $rows)
     {
         $modelName = \Cake\Utility\Inflector::camelize($table);
-        $model = $this->SeedGenerator->findModel($modelName, $table);
+        $model = $this->SeedGenerate->findModel($modelName, $table);
 
         try {
             foreach ($rows as $row) {
@@ -149,16 +155,8 @@ class SeedImportTask extends Shell
                     ->values($row)->execute();
 
                 continue;
-                /*$entity = $model->newEntity($row, [
-                    'accessibleFields' => ['*' => true],
-                    'validate' => false
-                ]);
-                if (!$model->save($entity, ['checkRules' => false])) {
-                    $this->out("{$table} record with ID {$row->id} could not be saved");
-                }*/
             }
         } catch (Exception $e) {
-            debug($e);
             $this->_io->err($e->getMessage());
             exit(1);
         }

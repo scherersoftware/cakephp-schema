@@ -56,28 +56,46 @@ cake schema load --no-interaction
 
 The Schema plugin allows you to seed data from the `config/seed.php` file. The `seed.php` file should return array of tables and rows:
 
-```PHP
-<?php
-// You can work with custom libraries here or use the Cake's ORM
-return [
-    'articles' => [
-        [
-            'id' => 1,
-            'category_id' => 1,
-            'label' => 'CakePHP'
-        ], [
-            'id' => 2,
-            'label' => 'Schema plugin'
-        ]
-    ],
-    'categories' => [
-        [
-            'id' => 2,
-            'label' => 'Frameworks'
-        ]
-    ]
-];
 ```
+<?php
+    // You can work with custom libraries here or use the Cake's ORM
+    return [
+        'articles' => [
+            [
+                'id' => 1,
+                'category_id' => 1,
+                'label' => 'CakePHP'
+            ], [
+                'id' => 2,
+                'label' => 'Schema plugin',
+                'json_type_field' => [
+                    'i' => 'will convert',
+                    'to' => 'json'
+                ]
+            ]
+        ],
+        'categories' => [
+            [
+                'id' => 2,
+                'label' => 'Frameworks'
+            ]
+        ]
+    ];
+```
+
+The Seed commands support the CakePHP ORM's type mapping. So for example, if you're using the JsonType example from the cookbook, the seed commands will automatically convert an array to JSON.
+
+You can use the `schema seedgenerate` command to automatically generate a seed.php file based on your database contents.
+
+Use `schema seed` for importing the contents of the `seed.php` into your DB.
+
+Seed commands will take the following options:
+
+- `connection` Database connection to use.
+- `seed` Path to the seed file to generate (Defaults to "config/seed.php")
+- `path` Path to the schema.php file (Defaults to "config/schema.php")
+
+
 
 ## Other examples
 ```bash
@@ -88,18 +106,6 @@ cake schema load --connection test --path config/schema/schema.lock --no-interac
 # To only drop all tables in database
 cake schema drop
 cake schema drop --connection test
-
-# Truncate tables before inserting. Otherwise duplicate ID exception is thrown.
-cake schema seed --truncate
-cake schema seed --seed custom/path/to/seed.php
-cake schema seed --connection test --truncate
-```
-
-To seed the data into database run following command:
-
-```
-cake schema seed
-```
 
 ## TODO
  

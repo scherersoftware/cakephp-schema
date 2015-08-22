@@ -1,6 +1,7 @@
 <?php
 namespace Schema\Shell;
 
+use Cake\Cache\Cache;
 use Cake\Console\Shell;
 use Schema\Task\SchemaSave;
 
@@ -10,6 +11,18 @@ use Schema\Task\SchemaSave;
 class SchemaShell extends Shell
 {
     public $tasks = ['Schema.SchemaSave', 'Schema.SchemaLoad', 'Schema.SeedImport', 'Schema.SeedGenerate'];
+
+
+    /**
+     * Constructs this Shell instance.
+     *
+     * @param \Cake\Console\ConsoleIo $io An io instance.
+     */
+    public function __construct(ConsoleIo $io = null)
+    {
+        Cache::disable();
+        parent::__construct($io);
+    }
 
     /**
      * Save the schema to the file.
@@ -56,7 +69,7 @@ class SchemaShell extends Shell
      *
      * @return void
      */
-    public function seedGenerate()
+    public function generateSeed()
     {
         $this->SeedGenerate->generate();
     }
@@ -73,7 +86,7 @@ class SchemaShell extends Shell
         return $parser->description([
             'Schema Shell',
             '',
-            'Saves and loads the schema from the the schema.lock file.'
+            'Saves and loads the schema from the the schema.php file.'
         ])->addSubcommand('save', [
             'help' => 'Saves the schema into schema.php file.'
         ])->addSubcommand('load', [
@@ -82,7 +95,7 @@ class SchemaShell extends Shell
             'help' => 'Drops all tables in the database.'
         ])->addSubcommand('seed', [
             'help' => 'Inserts data into the database.'
-        ])->addSubcommand('seedGenerate', [
+        ])->addSubcommand('generateseed', [
             'help' => 'Generates a seed.php file based on the current database contents.'
         ])->addOption('connection', [
             'help' => 'Connection name to save/load the schema from.',
@@ -91,11 +104,11 @@ class SchemaShell extends Shell
         ])->addOption('path', [
             'help' => 'Path to the schema.php file. Default: config/schema.php',
             'short' => 'p',
-            'default' =>  'config/schema.php'
+            'default' => 'config/schema.php'
         ])->addOption('seed', [
-            'help' => 'Path to the seed.php file. Defualt: config/seed.php',
+            'help' => 'Path to the seed.php file. Default: config/seed.php',
             'short' => 's',
-            'default' =>  'config/seed.php'
+            'default' => 'config/seed.php'
         ])->addOption('truncate', [
             'help' => 'Truncate tables before seeding.',
             'short' => 't',

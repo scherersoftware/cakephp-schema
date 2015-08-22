@@ -1,41 +1,86 @@
 <?php
 namespace Schema\Shell\Task;
 
-use Cake\Cache\Cache;
+use Bake\Shell\Task\SimpleBakeTask;
 use Cake\Console\Shell;
 use Cake\Core\Configure;
 use Cake\Datasource\ConnectionManager;
+use Cake\Event\Event;
+use Cake\Event\EventManager;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
+use Exception;
 
-class SeedGenerateTask extends Shell
+class SeedGenerateTask extends SimpleBakeTask
 {
-    public $connection = 'default';
+    /**
+     * Default configuration.
+     *
+     * @var array
+     */
+    protected $_config = [
+        'connection' => 'default',
+        'seed' => 'config/seed.php',
+        'path' => 'config/schema.php',
+        'no-interaction' => false
+    ];
+
+    /**
+     * {@inheritDoc}
+     */
+    public function name()
+    {
+        return 'seed';
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function fileName($name)
+    {
+        return $this->_config['seed'];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function template()
+    {
+        return 'Schema.config/seed';
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getPath()
+    {
+        return ROOT . DS;
+    }
 
     /**
      * main() method.
      *
      * @return bool|int Success or error code.
      */
-    public function generate()
+    public function generate(array $options = [])
     {
-        Cache::disable();
-        $seedFile = ROOT . '/config/seed.php';
-        Configure::load('schema');
+        // Hook into the bake process to load our SchemaHelper
+        EventManager::instance()->on('Bake.initialize', function (Event $event) {
+            $view = $event->subject;
+            $view->loadHelper('Schema.Schema');
+        });
 
-        $seedData = [];
-
-        $connection = ConnectionManager::get($this->connection);
-        $schemaCollection = $connection->schemaCollection();
-        
-        foreach (Configure::read('tables') as $tableName => $tableSchema) {
-            $model = Inflector::camelize($tableName);
-            $data = $this->_getRecordsFromTable($model, $tableName)->toArray();
-            if (empty($data)) {
-                continue;
-            }
-            $seedData[$tableName] = $data;
+        $this->_config = array_merge($this->_config, $this->params, $options);
+        if ($this->_config['no-interaction']) {
+            $this->interactive = false;
         }
+
+        if (!file_exists($this->_config['path'])) {
+            throw new Exception(sprintf('Schema file "%s" does not exist.', $this->_config['path']));
+        }
+
+        parent::bake('seed');
+        return;
 
         $fileContent = "<?php\nreturn [\n";
         foreach ($seedData as $tableName => $records) {
@@ -48,51 +93,31 @@ class SeedGenerateTask extends Shell
     }
 
     /**
-     * Convert a $records array into a string.
+     * Called by bake for retrieving view vars.
      *
-     * @param array $records Array of records to be converted to string
-     * @return string A string value of the $records array.
+     * @return array
      */
-    protected function _makeRecordString($records)
+    public function templateData()
     {
-        $out = "[\n";
-        $encoder = new \Riimu\Kit\PHPEncoder\PHPEncoder();
+        $schema = require $this->_config['path'];
+        $seedData = [];
 
-        foreach ($records as $record) {
-            $values = [];
-            foreach ($record as $field => $value) {
-                if ($value instanceof \DateTime) {
-                    $value = $value->format('Y-m-d H:i:s');
-                }
-                if (is_array($value)) {
-                    // FIXME: the encoder will forget precisions of floats
-                    $val = $encoder->encode($value, [
-                        'array.inline' => false,
-                        'array.omit' => false,
-                        'array.indent' => 4,
-                        'boolean.capitalize' => false,
-                        'null.capitalize' => false,
-                        'string.escape' => false,
-                        'array.base' => 12,
-                        'float.integers' => "all",
-                        'float.precision' => false
-                    ]);
-                } else {
-                    $val = var_export($value, true);
-                }
+        $connection = ConnectionManager::get($this->_config['connection']);
+        $schemaCollection = $connection->schemaCollection();
 
-                if ($val === 'NULL') {
-                    $val = 'null';
-                }
-                $values[] = "            '$field' => $val";
+        foreach ($schema['tables'] as $tableName => $tableSchema) {
+            $model = Inflector::camelize($tableName);
+            $data = $this->_getRecordsFromTable($model, $tableName)->toArray();
+            if (empty($data)) {
+                continue;
             }
-            $out .= "        [\n";
-            $out .= implode(",\n", $values);
-            $out .= "\n        ],\n";
+            $seedData[$tableName] = $data;
         }
-        $out .= "    ]";
-        return $out;
+        return [
+            'seedData' => $seedData
+        ];
     }
+
 
     /**
      * Interact with the user to get a custom SQL condition and use that to extract data
