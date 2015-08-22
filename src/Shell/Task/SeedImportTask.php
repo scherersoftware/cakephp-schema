@@ -1,22 +1,43 @@
 <?php
 namespace Schema\Shell\Task;
 
+use Cake\Cache\Cache;
 use Cake\Console\Shell;
+use Cake\Core\Configure;
 use Cake\Database\Driver\Sqlserver;
 use Cake\Database\Schema\Table;
 use Cake\Datasource\ConnectionManager;
 use Cake\Filesystem\File;
+use Cake\ORM\TableRegistry;
+use Cake\Utility\Inflector;
 use Exception;
 
-class SeedTask extends Shell
+class SeedImportTask extends Shell
 {
+    public $connection = 'default';
+
+    public $tasks = ['SeedGenerator'];
+
+    /**
+     * main() method.
+     *
+     * @return bool|int Success or error code.
+     */
+    public function import()
+    {
+        /*if (ENVIRONMENT !== \App\Lib\Environments::DEVELOPMENT) {
+            return $this->error('You can only import seed data on development systems.');
+        }*/
+        $this->seed();
+    }
+
     /**
      * Default configuration.
      *
      * @var array
      */
     private $_config = [
-        'connection' => 'test',
+        'connection' => 'default',
         'seed' => 'config/seed.php',
         'truncate' => true
     ];
@@ -32,6 +53,7 @@ class SeedTask extends Shell
         $this->_config = array_merge($this->_config, $this->params, $options);
 
         $data = $this->_readSeed($this->_config['seed']);
+
         $db = $this->_connection();
 
         $this->_truncate($db, $data);
@@ -46,15 +68,17 @@ class SeedTask extends Shell
      * @return void
      */
     protected function _truncate($db, $data = null)
-    {        
+    {
         if ($this->_config['truncate']) {
             $this->_io->out('Truncating ', 0);
 
             $operation = function ($db) use ($data) {
+                $db->disableForeignKeys();
                 foreach ($data as $table => $rows) {
                     $this->_io->out('.', 0);
                     $this->_truncateTable($db, $table);
                 }
+                $db->enableForeignKeys();
             };
 
             $this->_runOperation($db, $operation);
@@ -115,19 +139,26 @@ class SeedTask extends Shell
      */
     protected function _insertTable($db, $table, $rows)
     {
+        $modelName = \Cake\Utility\Inflector::camelize($table);
+        $model = $this->SeedGenerator->findModel($modelName, $table);
+
         try {
-            $schema = $db->schemaCollection()->describe($table);
-            list($fields, $values, $types) = $this->_getRecords($schema, $rows);
-            $query = $db->newQuery()
-            ->insert($fields, $types)
-            ->into($table);
+            foreach ($rows as $row) {
+                $query = $model->query();
+                $query->insert(array_keys($row))
+                    ->values($row)->execute();
 
-            foreach ($values as $row) {
-                $query->values($row);
+                continue;
+                /*$entity = $model->newEntity($row, [
+                    'accessibleFields' => ['*' => true],
+                    'validate' => false
+                ]);
+                if (!$model->save($entity, ['checkRules' => false])) {
+                    $this->out("{$table} record with ID {$row->id} could not be saved");
+                }*/
             }
-
-            $query->execute()->closeCursor();
-        } catch(Exception $e) {
+        } catch (Exception $e) {
+            debug($e);
             $this->_io->err($e->getMessage());
             exit(1);
         }

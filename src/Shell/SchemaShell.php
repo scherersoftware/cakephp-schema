@@ -9,7 +9,7 @@ use Schema\Task\SchemaSave;
  */
 class SchemaShell extends Shell
 {
-    public $tasks = ['Schema.SchemaSave', 'Schema.SchemaLoad', 'Schema.Seed'];
+    public $tasks = ['Schema.SchemaSave', 'Schema.SchemaLoad', 'Schema.SeedImport', 'Schema.SeedGenerate'];
 
     /**
      * Save the schema to the file.
@@ -48,7 +48,17 @@ class SchemaShell extends Shell
      */
     public function seed()
     {
-        $this->Seed->seed();
+        $this->SeedImport->import();
+    }
+
+    /**
+     * Insert data into database.
+     *
+     * @return void
+     */
+    public function seedGenerate()
+    {
+        $this->SeedGenerate->generate();
     }
 
     /**
@@ -65,13 +75,15 @@ class SchemaShell extends Shell
             '',
             'Saves and loads the schema from the the schema.lock file.'
         ])->addSubcommand('save', [
-            'help' => 'Saves the schema into schema.lock file.'
+            'help' => 'Saves the schema into schema.php file.'
         ])->addSubcommand('load', [
-            'help' => 'Loads the schema from the schema.lock file.'
+            'help' => 'Loads the schema from the schema.php file.'
         ])->addSubcommand('drop', [
             'help' => 'Drops all tables in the database.'
         ])->addSubcommand('seed', [
             'help' => 'Inserts data into the database.'
+        ])->addSubcommand('seedGenerate', [
+            'help' => 'Generates a seed.php file based on the current database contents.'
         ])->addOption('connection', [
             'help' => 'Connection name to save/load the schema from.',
             'short' => 'c',

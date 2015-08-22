@@ -21,7 +21,8 @@
     },
     "require": {
         "php": ">=5.4",
-        "cakephp/cakephp": "~3.0"
+        "cakephp/cakephp": "~3.0",
+        "riimu/kit-phpencoder": "2.*"
     },
     "require-dev": {
         "phpunit/phpunit": "*",
