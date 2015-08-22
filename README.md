@@ -85,7 +85,7 @@ The Schema plugin allows you to seed data from the `config/seed.php` file. The `
 
 The Seed commands support the CakePHP ORM's type mapping. So for example, if you're using the JsonType example from the cookbook, the seed commands will automatically convert an array to JSON.
 
-You can use the `schema seedgenerate` command to automatically generate a seed.php file based on your database contents.
+You can use the `schema generateseed` command to automatically generate a seed.php file based on your database contents.
 
 Use `schema seed` for importing the contents of the `seed.php` into your DB.
 
@@ -106,6 +106,12 @@ cake schema load --connection test --path config/schema/schema.lock --no-interac
 # To only drop all tables in database
 cake schema drop
 cake schema drop --connection test
+
+# Seeding Examples
+
+cake schema seed --truncate
+cake schema generateseed --seed config/my_seed.php
+
 
 ## TODO
  
