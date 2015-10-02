@@ -119,6 +119,9 @@ class SchemaShell extends Shell
             'short' => 'n',
             'boolean' => true,
             'default' => false
+        ])->addOption('count', [
+            'help' => 'Set the limit when generating seed',
+            'default' => 10
         ]);
     }
 }
