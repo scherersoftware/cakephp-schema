@@ -3,6 +3,7 @@ namespace Schema;
 
 use Cake\Database\Connection;
 use Cake\Database\Schema\Table as SchemaTable;
+use Cake\Datasource\ConnectionInterface;
 
 /**
  * Custom table object for better manipulation with foreign keys.
@@ -33,7 +34,7 @@ class Table extends SchemaTable
      * @return array List of SQL statements to create the table and the
      *    required indexes.
      */
-    public function createSql(Connection $connection)
+    public function createSql(ConnectionInterface $connection)
     {
         $this->_extractForeignKeys($connection);
         return parent::createSql($connection);
