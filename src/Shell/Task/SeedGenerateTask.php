@@ -129,14 +129,17 @@ class SeedGenerateTask extends SimpleBakeTask
      */
     protected function _getRecordsFromTable($modelName, $useTable = null)
     {
-        $recordCount = (isset($this->params['count']) ? $this->params['count'] : 10);
+        $recordCount = (isset($this->params['count']) ? $this->params['count'] : false);
         $conditions = (isset($this->params['conditions']) ? $this->params['conditions'] : '1=1');
         $model = $this->findModel($modelName, $useTable);
 
         $records = $model->find('all')
             ->where($conditions)
-            ->limit($recordCount)
             ->hydrate(false);
+
+        if ($recordCount) {
+            $records->limit($recordCount);
+        }
 
         return $records;
     }
