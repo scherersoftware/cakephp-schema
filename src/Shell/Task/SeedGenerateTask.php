@@ -80,16 +80,6 @@ class SeedGenerateTask extends SimpleBakeTask
         }
 
         parent::bake('seed');
-        return;
-
-        $fileContent = "<?php\nreturn [\n";
-        foreach ($seedData as $tableName => $records) {
-            $fileContent .= sprintf("    '%s' => ", $tableName);
-            $fileContent .= $this->_makeRecordString($records);
-            $fileContent .= ",\n";
-        }
-        $fileContent .= "];\n";
-        file_put_contents($seedFile, $fileContent);
     }
 
     /**
@@ -105,7 +95,14 @@ class SeedGenerateTask extends SimpleBakeTask
         $connection = ConnectionManager::get($this->_config['connection']);
         $schemaCollection = $connection->schemaCollection();
 
+        if (!($excludedTables = Configure::read('Schema.GenerateSeed.excludedTables'))) {
+            $excludedTables = [];
+        }
+
         foreach ($schema['tables'] as $tableName => $tableSchema) {
+            if (in_array($tableName, $excludedTables)) {
+                continue;
+            }
             $model = Inflector::camelize($tableName);
             $data = $this->_getRecordsFromTable($model, $tableName)->toArray();
             if (empty($data)) {
