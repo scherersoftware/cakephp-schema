@@ -98,19 +98,20 @@ Seed commands will take the following options:
 
 
 ## Other examples
-```bash
-cake schema save --connection test
-cake schema save --path config/schema/schema.lock
-cake schema load --connection test --path config/schema/schema.lock --no-interaction
+
+    cake schema save --connection test
+    cake schema save --path config/schema/schema.lock
+    cake schema load --connection test --path config/schema/schema.lock --no-interaction
 
 # To only drop all tables in database
-cake schema drop
-cake schema drop --connection test
+
+    cake schema drop
+    cake schema drop --connection test
 
 # Seeding Examples
 
-cake schema seed --truncate
-cake schema generateseed --seed config/my_seed.php
+    cake schema seed --truncate
+    cake schema generateseed --seed config/my_seed.php
 
 # Seeding for Migrations Plugin / phinx
 
