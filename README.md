@@ -112,6 +112,15 @@ cake schema drop --connection test
 cake schema seed --truncate
 cake schema generateseed --seed config/my_seed.php
 
+# Seeding for Migrations Plugin / phinx
+
+This plugin provides a bake task extending the `seed` bake task provided by the `cakephp/migrations` plugin, but with automated inclusion of seed data from the database.
+
+Example usage:
+
+    bin/cake bake migration_seed Users --records
+
+This will write a new file into `src/config/Seeds/UsersSeed.php` including all records currently present in the DB's users table.
 
 ## TODO
  

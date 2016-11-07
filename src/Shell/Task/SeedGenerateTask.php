@@ -104,7 +104,7 @@ class SeedGenerateTask extends SimpleBakeTask
                 continue;
             }
             $model = Inflector::camelize($tableName);
-            $data = $this->_getRecordsFromTable($model, $tableName)->toArray();
+            $data = $this->getRecordsFromTable($model, $tableName)->toArray();
             if (empty($data)) {
                 continue;
             }
@@ -124,7 +124,7 @@ class SeedGenerateTask extends SimpleBakeTask
      * @param string|null $useTable Name of table to use.
      * @return array Array of records.
      */
-    protected function _getRecordsFromTable($modelName, $useTable = null)
+    public function getRecordsFromTable($modelName, $useTable = null)
     {
         $recordCount = (isset($this->params['count']) ? $this->params['count'] : false);
         $conditions = (isset($this->params['conditions']) ? $this->params['conditions'] : '1=1');
