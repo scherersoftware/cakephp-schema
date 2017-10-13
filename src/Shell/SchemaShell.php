@@ -2,6 +2,7 @@
 namespace Schema\Shell;
 
 use Cake\Cache\Cache;
+use Cake\Console\ConsoleIo;
 use Cake\Console\Shell;
 use Schema\Task\SchemaSave;
 

@@ -20,12 +20,11 @@
         "source": "https://github.com/scherersoftware/cakephp-schema"
     },
     "require": {
-        "php": ">=5.4",
-        "cakephp/cakephp": "~3.0",
+        "cakephp/cakephp": "^3.4",
         "riimu/kit-phpencoder": "2.*"
     },
     "require-dev": {
-        "phpunit/phpunit": "*",
+        "phpunit/phpunit": "<6.0",
         "cakephp/bake": "dev-master"
     },
     "autoload": {
