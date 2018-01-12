@@ -1,3 +1,6 @@
+# This repo is not maintained anymore
+For current versions please try the original https://github.com/Laykou/cakephp-schema or a successor of this one: https://github.com/raul338/cakephp-schema
+
 # Schema plugin for CakePHP 3.0
 
 Save the schema into one file and then restore the database from the schema file. The schema is automatically saved when executing `cake migrations migrate`.
